@@ -19,12 +19,14 @@ func LogEvent(db *gorm.DB, event any) string {
 		return my_event.ID
 
 	case *types.DeveloperEvent:
+		my_event.ID = ulid.Make().String()
 		if err := db.Create(my_event).Error; err != nil {
 			panic(err)
 		}
 		return my_event.ID
 
 	case *types.SystemEvent:
+		my_event.ID = ulid.Make().String()
 		if err := db.Create(my_event).Error; err != nil {
 			panic(err)
 		}
