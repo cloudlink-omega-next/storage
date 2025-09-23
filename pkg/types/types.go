@@ -6,6 +6,27 @@ import (
 	"github.com/cloudlink-omega/storage/pkg/bitfield"
 )
 
+type Guest struct {
+	ID        string             `gorm:"primaryKey;type:char(26);unique;not null"`
+	Username  string             `gorm:"not null;min:1;max:20"`
+	State     bitfield.Bitfield8 `gorm:"not null;default:0;"`
+	CreatedAt time.Time
+	ExpiresAt time.Time
+}
+
+type GuestSession struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID    string `gorm:"not null"`
+	UserAgent string `gorm:"mediumtext;not null"`
+	Origin    string `gorm:"mediumtext;not null"`
+	IP        string `gorm:"mediumtext;not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	ExpiresAt time.Time
+
+	Guest *Guest `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
 type User struct {
 	ID        string             `gorm:"primaryKey;type:char(26);unique;not null"`
 	Username  string             `gorm:"unique;not null;min:1;max:20"`

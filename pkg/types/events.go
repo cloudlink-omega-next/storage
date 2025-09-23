@@ -65,6 +65,9 @@ var UserEvents map[string][]any = map[string][]any{
 
 	"recovery_code_retrieval_error": {"Failed to retrieve user recovery codes", LogError},
 	"recovery_code_store_error":     {"Failed to store user recovery codes", LogError},
+
+	"guest_created":      {"Guest account was created", LogInfo},
+	"guest_create_error": {"Failed to create guest account", LogError},
 }
 
 // Define the events used for logging developer activity
