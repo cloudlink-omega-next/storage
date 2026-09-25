@@ -36,6 +36,13 @@ type User struct {
 	State     bitfield.Bitfield8 `gorm:"not null;default:0;"`
 	AvatarID  *string
 	BannerID  *string
+	Name      string             `gorm:"type:tinytext"`
+	Bio       string             `gorm:"type:mediumtext"`
+	Location  string             `gorm:"type:tinytext"`
+	Website   string             `gorm:"type:tinytext"`
+	Language  string `gorm:"type:tinytext;default:'en';not null"`
+	Theme     string `gorm:"type:tinytext;default:'system';not null"`
+	IsPublic  bool   `gorm:"not null;default:true"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 
@@ -104,6 +111,17 @@ type RecoveryCode struct {
 	UserID    string `gorm:"type:char(26);not null"`
 	Code      string `gorm:"type:mediumtext;not null"`
 	CreatedAt time.Time
+
+	User *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+type EmailChangeToken struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID    string `gorm:"type:char(26);not null"`
+	NewEmail  string `gorm:"type:varchar(255);not null"`
+	Token     string `gorm:"type:mediumtext;not null"`
+	CreatedAt time.Time
+	ExpiresAt time.Time
 
 	User *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
 }
@@ -219,6 +237,78 @@ type UserGameSave struct {
 	DeveloperGame *DeveloperGame `gorm:"foreignKey:DeveloperGameID;references:ID;constraint:OnDelete:CASCADE;"`
 }
 
+// UserPlayedGame is used to track games a user has played.
+type UserPlayedGame struct {
+	UserID          string `gorm:"primaryKey;type:char(26);not null"`
+	DeveloperGameID string `gorm:"primaryKey;type:char(26);not null"`
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+
+	User          *User          `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+	DeveloperGame *DeveloperGame `gorm:"foreignKey:DeveloperGameID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// Friend represents a friendship between two users.
+type Friend struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID    string `gorm:"type:char(26);not null;index"`
+	FriendID  string `gorm:"type:char(26);not null;index"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	User   *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+	Friend *User `gorm:"foreignKey:FriendID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// FriendRequest represents a friend request between two users.
+type FriendRequest struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	SenderID  string `gorm:"type:char(26);not null;index"`
+	ReceiverID string `gorm:"type:char(26);not null;index"`
+	Status    string `gorm:"type:varchar(20);not null;default:'pending'"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Sender   *User `gorm:"foreignKey:SenderID;references:ID;constraint:OnDelete:CASCADE;"`
+	Receiver *User `gorm:"foreignKey:ReceiverID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// Blocklist represents a user blocking another user.
+type Blocklist struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID    string `gorm:"type:char(26);not null;index"`
+	BlockedID string `gorm:"type:char(26);not null;index"`
+	CreatedAt time.Time
+
+	User    *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+	Blocked *User `gorm:"foreignKey:BlockedID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// Message represents a chat message between two users.
+type Message struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	SenderID  string `gorm:"type:char(26);not null;index"`
+	ReceiverID string `gorm:"type:char(26);not null;index"`
+	Content   string `gorm:"type:mediumtext;not null"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+
+	Sender   *User `gorm:"foreignKey:SenderID;references:ID;constraint:OnDelete:CASCADE;"`
+	Receiver *User `gorm:"foreignKey:ReceiverID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// Notification represents a user notification.
+type Notification struct {
+	ID        string `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID    string `gorm:"type:char(26);not null;index"`
+	Type      string `gorm:"type:varchar(50);not null"`
+	Message   string `gorm:"type:mediumtext;not null"`
+	Read      bool   `gorm:"not null;default:false"`
+	CreatedAt time.Time
+
+	User *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
 // Developer represents a game developer.
 type Developer struct {
 	ID          string             `gorm:"primaryKey;type:char(26);unique;not null"`
@@ -307,4 +397,71 @@ type ReportTag struct {
 	IsUser      bool
 	IsDeveloper bool
 	IsGame      bool
+}
+
+// UserPoint represents a user's points balance and check-in status.
+type UserPoint struct {
+	UserID      string `gorm:"primaryKey;type:char(26);unique;not null"`
+	Balance     int    `gorm:"not null;default:0"`
+	LastCheckIn time.Time
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+
+	User *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+}
+
+// PointTransactionType represents the type of points transaction.
+type PointTransactionType string
+
+const (
+	PointTransactionTypeEarn      PointTransactionType = "earn"
+	PointTransactionTypeSpend     PointTransactionType = "spend"
+	PointTransactionTypePurchase  PointTransactionType = "purchase"
+	PointTransactionTypeTransfer  PointTransactionType = "transfer"
+	PointTransactionTypeRefund    PointTransactionType = "refund"
+	PointTransactionTypeAdminAdj  PointTransactionType = "admin_adjustment"
+)
+
+// PointTransaction represents a points transaction record.
+type PointTransaction struct {
+	ID            string             `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID        string             `gorm:"type:char(26);not null;index"`
+	Amount        int                `gorm:"not null"`
+	Type          PointTransactionType `gorm:"type:varchar(50);not null"`
+	Description   string             `gorm:"type:mediumtext"`
+	RelatedUserID *string            `gorm:"type:char(26)"`
+	RelatedGameID *string            `gorm:"type:char(26)"`
+	CreatedAt     time.Time
+
+	User        *User        `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
+	RelatedUser *User        `gorm:"foreignKey:RelatedUserID;references:ID;constraint:OnDelete:SET NULL;"`
+	RelatedGame *DeveloperGame `gorm:"foreignKey:RelatedGameID;references:ID;constraint:OnDelete:SET NULL;"`
+}
+
+// PointPurchaseStatus represents the status of a point purchase.
+type PointPurchaseStatus string
+
+const (
+	PointPurchaseStatusPending   PointPurchaseStatus = "pending"
+	PointPurchaseStatusCompleted PointPurchaseStatus = "completed"
+	PointPurchaseStatusFailed    PointPurchaseStatus = "failed"
+	PointPurchaseStatusCancelled PointPurchaseStatus = "cancelled"
+)
+
+// PointPurchase represents a points purchase transaction.
+type PointPurchase struct {
+	ID            string             `gorm:"primaryKey;type:char(26);unique;not null"`
+	UserID        string             `gorm:"type:char(26);not null;index"`
+	Amount        int                `gorm:"not null"`
+	Price         float64            `gorm:"not null"`
+	Currency      string             `gorm:"type:varchar(10);not null;default:'USD'"`
+	Status        PointPurchaseStatus `gorm:"type:varchar(20);not null;default:'pending'"`
+	PaymentURL    string             `gorm:"type:mediumtext"`
+	PaymentMethod *string            `gorm:"type:varchar(50)"`
+	TransactionID *string            `gorm:"type:varchar(255)"`
+	CompletedAt   *time.Time
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+
+	User *User `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE;"`
 }

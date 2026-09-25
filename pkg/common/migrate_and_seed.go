@@ -24,6 +24,7 @@ func MigrateAndSeed(db *gorm.DB) error {
 		&types.Guest{},
 		&types.User{},
 		&types.Verification{},
+		&types.EmailChangeToken{},
 		&types.RecoveryCode{},
 		&types.UserGoogle{},
 		&types.UserDiscord{},
@@ -42,8 +43,17 @@ func MigrateAndSeed(db *gorm.DB) error {
 		&types.GameComment{},
 		&types.Achievement{},
 		&types.UserGameSave{},
+		&types.UserPlayedGame{},
+		&types.Friend{},
+		&types.FriendRequest{},
+		&types.Blocklist{},
+		&types.Message{},
+		&types.Notification{},
 		&types.Image{},
 		&types.FeatureTag{},
+		&types.UserPoint{},
+		&types.PointTransaction{},
+		&types.PointPurchase{},
 	); err != nil {
 		return err
 	}
@@ -128,6 +138,10 @@ func MigrateAndSeed(db *gorm.DB) error {
 		tags = append(tags, &types.FeatureTag{ID: tag})
 	}
 	db.Model(&demogame).Association("Features").Replace(tags)
+
+	if err := db.Model(&types.Image{}).Where("link LIKE ?", "http://localhost:%").Update("link", gorm.Expr("REPLACE(link, 'http://localhost:', 'http://127.0.0.1:')")).Error; err != nil {
+		return err
+	}
 
 	return nil
 }

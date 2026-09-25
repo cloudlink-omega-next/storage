@@ -39,6 +39,10 @@ var UserEvents map[string][]any = map[string][]any{
 	"game_save_deleted": {"Game save was successfully deleted", LogInfo},
 	"game_save_error":   {"Game save error", LogError},
 
+	"user_settings_updated": {"User settings were updated", LogInfo},
+	"user_password_changed": {"User changed password", LogInfo},
+	"user_account_deleted":  {"User deleted their account", LogInfo},
+
 	"user_auth_password_error": {"Password authentication error", LogError},
 
 	"user_totp_enroll_started": {"User started TOTP enrollment", LogInfo},
@@ -63,6 +67,10 @@ var UserEvents map[string][]any = map[string][]any{
 	"user_password_reset_success":  {"User successfully reset password", LogInfo},
 	"user_password_reset_failure":  {"Error while resetting password", LogError},
 
+	"user_email_change_requested": {"User requested email change", LogInfo},
+	"user_email_change_failure":   {"Email change failed", LogError},
+	"user_email_changed":          {"User email was changed successfully", LogInfo},
+
 	"recovery_code_retrieval_error": {"Failed to retrieve user recovery codes", LogError},
 	"recovery_code_store_error":     {"Failed to store user recovery codes", LogError},
 
@@ -81,4 +89,8 @@ var DeveloperEvents map[string][]any = map[string][]any{
 	"developer_approval_success": {"Developer account was approved", LogInfo},
 	"developer_approval_deny":    {"Developer account was denied", LogInfo},
 	"developer_approval_failure": {"Developer account approval failed", LogError},
+
+	"game_submitted": {"Game was submitted for review", LogInfo},
+	"game_approved":  {"Game was approved and published", LogInfo},
+	"game_rejected":  {"Game was rejected during review", LogWarn},
 }
