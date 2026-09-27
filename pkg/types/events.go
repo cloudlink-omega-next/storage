@@ -74,6 +74,9 @@ var UserEvents map[string][]any = map[string][]any{
 	"recovery_code_retrieval_error": {"Failed to retrieve user recovery codes", LogError},
 	"recovery_code_store_error":     {"Failed to store user recovery codes", LogError},
 
+	"admin_cloud_save_deleted": {"Admin deleted a user cloud save", LogInfo},
+	"admin_cloud_save_updated": {"Admin updated a user cloud save", LogInfo},
+
 	"guest_created":      {"Guest account was created", LogInfo},
 	"guest_create_error": {"Failed to create guest account", LogError},
 }
@@ -90,7 +93,11 @@ var DeveloperEvents map[string][]any = map[string][]any{
 	"developer_approval_deny":    {"Developer account was denied", LogInfo},
 	"developer_approval_failure": {"Developer account approval failed", LogError},
 
-	"game_submitted": {"Game was submitted for review", LogInfo},
-	"game_approved":  {"Game was approved and published", LogInfo},
-	"game_rejected":  {"Game was rejected during review", LogWarn},
+	"game_submitted":         {"Game was submitted for review", LogInfo},
+	"game_approved":          {"Game was approved and published", LogInfo},
+	"game_rejected":          {"Game was rejected during review", LogWarn},
+	"game_deleted":           {"Game was deleted", LogInfo},
+	"game_file_replaced":     {"Game files were replaced", LogInfo},
+	"game_visibility_pending":{"Game visibility change was requested", LogInfo},
+	"game_visibility_updated":{"Game visibility was updated", LogInfo},
 }
